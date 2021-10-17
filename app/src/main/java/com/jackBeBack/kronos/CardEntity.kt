@@ -1,9 +1,13 @@
 package com.jackBeBack.kronos
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class CardEntity(
-    var description: String
+    @PrimaryKey val uid: Int,
+    @ColumnInfo(name = "description") var description: String
 ) {
-    companion object{
-        val default = CardEntity("Test Description")
-    }
+
 }

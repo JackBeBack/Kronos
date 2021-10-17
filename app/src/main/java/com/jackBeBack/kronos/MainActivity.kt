@@ -15,8 +15,10 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -41,14 +43,25 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.room.Room
 import com.jackBeBack.kronos.ui.theme.KronosTheme
 import java.nio.file.WatchEvent
 import kotlin.math.roundToInt
+import kotlin.random.Random
+
+val cardViewModel = CardViewModel()
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "database"
+        ).build()
+        cardViewModel.initDB(db)
+
 
         setContent {
             var currentScreen by remember { mutableStateOf(Screens.START) }
@@ -110,15 +123,19 @@ private fun mainScreen() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        for (i in 0..2){
-            val card = Card(CardEntity("Ich bin Karte $i"))
+        val cards = cardViewModel.cards.observeAsState().value
+        cards?.forEach {
+            Card(it)
+        }
+        Button(onClick = { cardViewModel.database.cardDao().insertAll(CardEntity(Random.nextInt(), "Beep")) }) {
+            Text(text = "Press ME")
         }
     }
 }
 
 @Preview
 @Composable
-fun Card(cardEntity: CardEntity = CardEntity.default) {
+fun Card(cardEntity: CardEntity = CardEntity(1, "null")) {
     var pos by remember {
         mutableStateOf(Offset(0F, 0F))
     }
